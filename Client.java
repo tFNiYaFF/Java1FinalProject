@@ -7,13 +7,22 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
+/**
+ *
+ * @author Дима
+ */
 public class Client extends Thread {
     private MainForm f;
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-    
+    private int uid;
     public Client(InetAddress addr){
         try{
             socket = new Socket(addr,8080);
@@ -62,6 +71,17 @@ public class Client extends Thread {
     }
     public void mainAction(MainForm f){
         this.f = f;
+        f.setClient(this);
+        try{
+            out.writeUTF("2");
+            out.flush();
+            String resp = in.readUTF();
+            String[] friends = resp.split(" ");
+            f.addFriends(friends);
+        }
+        catch(Exception e){
+            System.out.println("problems with loading ftiends");
+        }
         start();
     }
     public void run(){
@@ -79,7 +99,7 @@ public class Client extends Thread {
     
     public void sendMessage(String msg){
         try{
-                out.writeUTF(msg);
+                out.writeUTF("1 "+msg);
                 out.flush();
             }
             catch(Exception e){
@@ -87,4 +107,12 @@ public class Client extends Thread {
             }
     }
     
+    public void openMessages(int to){
+        try{
+                out.writeUTF("3 "+to);
+            }
+            catch(Exception e){
+                System.out.println("problems with load table of messages");
+            }
+    }      
 }

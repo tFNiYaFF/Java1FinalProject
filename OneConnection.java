@@ -9,7 +9,16 @@ import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
+/**
+ *
+ * @author Дима
+ */
 public class OneConnection extends Thread {
     private static DbJobs db;
     private static Map<Integer, DataOutputStream> online = new HashMap<>(); //тут список пользователей онлайн
@@ -20,6 +29,10 @@ public class OneConnection extends Thread {
     
     public void setUid(int value){
         uid = value;
+    }
+    
+    public int getUid(){
+        return uid;
     }
     
     public OneConnection(Socket s) throws IOException {
@@ -65,6 +78,17 @@ public class OneConnection extends Thread {
                             send.flush();
                         }
                         db.insertMsg(uid,to,msg);
+                        break;
+                    }
+                    case '2':{
+                        out.writeUTF(db.getFriendsList(this));
+                        out.flush();
+                        break;
+                    }
+                    case '3':{
+                        String[] res = line.split(" ");
+                        out.writeUTF(db.getMessages(this,Integer.parseInt(res[1])));
+                        out.flush();
                         break;
                     }
                 }
