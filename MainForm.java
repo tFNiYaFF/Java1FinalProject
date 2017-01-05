@@ -94,6 +94,7 @@ public class MainForm extends javax.swing.JFrame {
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
         c.sendMessage(toWho+" "+jTextArea1.getText());
+        jTextArea1.setText("");
     }//GEN-LAST:event_jButton1MouseClicked
 
     private void jList1ValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jList1ValueChanged
@@ -103,12 +104,25 @@ public class MainForm extends javax.swing.JFrame {
     }//GEN-LAST:event_jList1ValueChanged
 
     public void addMessage(String msg){
-       textArea1.append("\n"+msg);
+       String[] res = msg.split("!!!!!");
+       try{
+           for(int i=0; i<res.length; i++){
+              int idx = res[i].indexOf(" ");
+              int from = Integer.parseInt(res[i].substring(0, idx));
+              textArea1.append(from+": "+ res[i].substring(from)+"\n");
+           }
+       }
+       catch(Exception e){
+           e.printStackTrace();
+       }
+       
     }
     
     public void addFriends(String[] friends){
         jList1.setListData(friends);
     }
+    
+    
     
     
     /**

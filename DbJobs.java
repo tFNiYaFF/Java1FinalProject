@@ -85,7 +85,7 @@ public class DbJobs {
             stmt.setInt(4, to);
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                result+=rs.getInt("fromWho")+" "+rs.getInt("toWho")+" "+rs.getString("message")+" ";
+                result+=rs.getInt("fromWho")+" "+rs.getString("message")+"!!!!!";
             }
         }
         catch (SQLException sqlEx) {
