@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<title>Регистрация</title>
+
+</head>
+
+<h2 style="text-align:center;">Регистрация</h2>
+<br>
+
+<div style="position:fixed;width:400px;left:50%;margin-left:-200px;">
+<form method="post" action="registration.php">
+  
+  <div class="form-group">
+      <input type="text" class="form-control" id="username" name="username" placeholder="Введите логин" style="width:400px;" required>
+    </div>
+
+  <div class="form-group">
+      <input type="password" class="form-control" id="password" name="password" placeholder="Введите пароль" style="width:400px;" onchange="checkPasswords()" required>
+    </div>
+
+  <div class="form-group">
+      <input type="password" class="form-control" id="confirmPassword" placeholder="Введите пароль ещё раз" style="width:400px;" onchange="checkPasswords()" required>
+    </div>
+
+  <div class="form-group" style="position:absolute;right:0px;">
+      <input type="submit" class="btn btn-primary" value="Регистрация">
+    </div>
+</form>
+</div>
+<script type="text/javascript">
+function checkPasswords()
+{
+    var passl = document.getElementById("password");
+    var pass2 = document.getElementById("confirmPassword");
+    if(passl.value!=pass2.value)
+        passl.setCustomValidity("Пароли  не совпадают. Пожалуйста, проверьте  идентичность паролей в обоих полях!");
+    else
+        passl.setCustomValidity("");
+}
+</script>
+</html>

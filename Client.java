@@ -19,11 +19,14 @@ import java.net.Socket;
  */
 public class Client extends Thread {
     private MainForm f;
+    private Find findForm;
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-    private int uid;
+    private InetAddress address;
+    
     public Client(InetAddress addr){
+        address = addr;
         try{
             socket = new Socket(addr,8080);
         }
@@ -49,8 +52,8 @@ public class Client extends Thread {
             out.writeUTF("0 " + login+ " " + password);
             out.flush();
             String resp = in.readUTF();
-            if(resp.equals("success")){
-                return true; //loading info after
+            if(!resp.equals("fail")){
+                return true; 
             }
             else{
                 return false;
@@ -61,7 +64,7 @@ public class Client extends Thread {
             try{
                 socket.close();
             }
-            catch(Exception e1){
+            catch(IOException e1){
                 System.out.println("still opened");
             }
             finally{
@@ -69,25 +72,56 @@ public class Client extends Thread {
             }
         }
     }
-    public void mainAction(MainForm f){
-        this.f = f;
-        f.setClient(this);
+    
+    public void loadFriends(){
         try{
             out.writeUTF("2");
             out.flush();
             String resp = in.readUTF();
             String[] friends = resp.split(" ");
+            if(friends.length==1 && friends[0].equals("")){
+                return;
+            }
             f.addFriends(friends);
         }
-        catch(Exception e){
+        catch(IOException e){
             System.out.println("problems with loading ftiends");
         }
+    }
+    
+    public void addFriend(String login){
+        try{
+            out.writeUTF("5 "+ login);
+        }
+        catch(IOException e){
+            System.out.println("problems with adding friend");
+        }
+    }
+    
+    public void mainAction(MainForm f){
+        this.f = f;
+        f.setClient(this);
+        loadFriends();
         start();
     }
+    
+    @Override
     public void run(){
         while(true){
             try{
                 String line = in.readUTF();
+                if(line.equals("*//FRIENDUPDATE//*")){
+                    loadFriends();
+                    continue;
+                }
+                if(line.length()>=10){
+                    String temp = line.substring(0,10);
+                    if(temp.equals("*//FIND//*")){
+                        temp = line.substring(10);
+                        findForm.setResult(temp.split(" "));
+                        continue;
+                    }
+                }
                 f.addMessage(line);
             }
             catch(Exception e){
@@ -107,12 +141,22 @@ public class Client extends Thread {
             }
     }
     
-    public void openMessages(int to){
+    public void openMessages(String to){
         try{
                 out.writeUTF("3 "+to);
             }
             catch(Exception e){
                 System.out.println("problems with load table of messages");
             }
-    }      
+    }
+    
+    public void findPeoples(Find findForm,String pattern){
+        this.findForm = findForm;
+        try{
+            out.writeUTF("4 "+pattern);
+        }
+        catch(IOException e){
+            System.out.println("some prblems with finding");
+        }
+    }
 }

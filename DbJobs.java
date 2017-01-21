@@ -24,6 +24,10 @@ public class DbJobs {
     private final String authQuery = "SELECT COUNT(*),id FROM users WHERE login=? AND password=?";
     private final String friendsQuery = "SELECT friendId FROM friends WHERE id=?";
     private final String loadMsgQuery = "SELECT * FROM messages WHERE (fromWho=? OR fromWho=?) AND (toWho=? OR toWho=?)";
+    private final String findUsers = "SELECT login FROM users WHERE login LIKE ?";
+    private final String findUser = "SELECT id FROM users WHERE login = ?";
+    private final String insertFriend = "INSERT INTO friends (friendId,id) VALUES(?,?)";
+    private final String getNickById = "SELECT login FROM users WHERE id = ?";
     
     public DbJobs(){
         try{
@@ -45,11 +49,63 @@ public class DbJobs {
         return true;
     }
     
-    public void insertMsg(int from, int to, String msg){
+    public String addFriend(String me, String login){
+        String result = "";
+        int to = -1;
         try{
-            PreparedStatement stmt = connection.prepareStatement(insertMsg);
+            PreparedStatement helpStmt = connection.prepareStatement(findUser);
+            helpStmt.setString(1, me);
+            ResultSet helpRs = helpStmt.executeQuery();
+            helpRs.next();
+            int from = helpRs.getInt("id");
+            PreparedStatement pstmt = connection.prepareStatement(findUser);
+            pstmt.setString(1,login);
+            ResultSet rs = pstmt.executeQuery();
+            rs.next();
+            to = rs.getInt("id");
+            PreparedStatement stmt = connection.prepareStatement(insertFriend);
+            stmt.setInt(1,to);
+            stmt.setInt(2,from);
+            stmt.executeUpdate();
             stmt.setInt(1,from);
             stmt.setInt(2,to);
+            stmt.executeUpdate();
+            
+            PreparedStatement newStmt = connection.prepareStatement(getNickById);
+            newStmt.setInt(1,to);
+            ResultSet newRs = newStmt.executeQuery();
+            newRs.next();
+            result=newRs.getString("login");
+            
+        }
+        catch (SQLException sqlEx) {
+            sqlEx.printStackTrace();
+        }
+        return result;
+    }
+    
+    public String getUsers(String pattern){
+        String result = "";
+        try {
+            PreparedStatement stmt = connection.prepareStatement(findUsers);
+            stmt.setString(1,"%"+pattern+"%");
+            ResultSet rs = stmt.executeQuery();
+            while(rs.next()){
+                result+=rs.getString("login")+" ";
+            }
+        }
+        catch (SQLException sqlEx) {
+            sqlEx.printStackTrace();
+            return result;
+        }
+        return result;
+    }
+    
+    public void insertMsg(String from, String to, String msg){
+        try{
+            PreparedStatement stmt = connection.prepareStatement(insertMsg);
+            stmt.setString(1,from);
+            stmt.setString(2,to);
             stmt.setString(3,msg);
             stmt.executeUpdate();
         }
@@ -61,11 +117,20 @@ public class DbJobs {
     public String getFriendsList(OneConnection o){
         String result = "";
         try {
+            PreparedStatement helpStmt = connection.prepareStatement(findUser);
+            helpStmt.setString(1, o.getUid());
+            ResultSet helpRs = helpStmt.executeQuery();
+            helpRs.next();
+            int id = helpRs.getInt("id");
             PreparedStatement stmt = connection.prepareStatement(friendsQuery);
-            stmt.setInt(1, o.getUid());
+            stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                result+=rs.getInt("friendId")+" ";
+                PreparedStatement newStmt = connection.prepareStatement(getNickById);
+                newStmt.setInt(1,rs.getInt("friendId"));
+                ResultSet newRs = newStmt.executeQuery();
+                newRs.next();
+                result+=newRs.getString("login")+" ";
             }
         }
         catch (SQLException sqlEx) {
@@ -75,17 +140,18 @@ public class DbJobs {
         return result;
     }
     
-    public String getMessages(OneConnection o, int to){
+    public String getMessages(OneConnection o, String to){
         String result = "";
         try {
+            
             PreparedStatement stmt = connection.prepareStatement(loadMsgQuery);
-            stmt.setInt(1, o.getUid());
-            stmt.setInt(2, to);
-            stmt.setInt(3, o.getUid());
-            stmt.setInt(4, to);
+            stmt.setString(1, o.getUid());
+            stmt.setString(2, to);
+            stmt.setString(3, o.getUid());
+            stmt.setString(4, to);
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                result+=rs.getInt("fromWho")+" "+rs.getString("message")+"!!!!!";
+                result+=rs.getString("fromWho")+" "+rs.getString("message")+"!!!!!"; //Поменять!
             }
         }
         catch (SQLException sqlEx) {
@@ -105,7 +171,7 @@ public class DbJobs {
             if(rs.getInt(1)==0){
                 return false;
             }
-            o.setUid(rs.getInt(2));
+            o.setUid(login);
         }
         catch (SQLException sqlEx) {
             sqlEx.printStackTrace();
