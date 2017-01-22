@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import javax.swing.JOptionPane;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -113,6 +114,9 @@ public class Client extends Thread {
                 if(line.equals("*//FRIENDUPDATE//*")){
                     loadFriends();
                     continue;
+                }
+                if(line.equals("error")){
+                    JOptionPane.showMessageDialog(null, "Вы уже добавили этого собеседника!");
                 }
                 if(line.length()>=10){
                     String temp = line.substring(0,10);

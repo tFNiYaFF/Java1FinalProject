@@ -34,6 +34,8 @@ public class Find extends javax.swing.JFrame {
         jList1 = new javax.swing.JList<>();
         jButton2 = new javax.swing.JButton();
 
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setAlwaysOnTop(true);
         setLocation(new java.awt.Point(100, 100));
         setResizable(false);
 

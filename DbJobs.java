@@ -4,6 +4,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import javax.swing.JOptionPane;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -25,9 +26,9 @@ public class DbJobs {
     private final String friendsQuery = "SELECT friendId FROM friends WHERE id=?";
     private final String loadMsgQuery = "SELECT * FROM messages WHERE (fromWho=? OR fromWho=?) AND (toWho=? OR toWho=?)";
     private final String findUsers = "SELECT login FROM users WHERE login LIKE ?";
-    private final String findUser = "SELECT id FROM users WHERE login = ?";
     private final String insertFriend = "INSERT INTO friends (friendId,id) VALUES(?,?)";
     private final String getNickById = "SELECT login FROM users WHERE id = ?";
+    private final String checkFriends = "SELECT COUNT(*) FROM friends WHERE id = ? AND friendId = ?";
     
     public DbJobs(){
         try{
@@ -50,38 +51,28 @@ public class DbJobs {
     }
     
     public String addFriend(String me, String login){
-        String result = "";
-        int to = -1;
-        try{
-            PreparedStatement helpStmt = connection.prepareStatement(findUser);
-            helpStmt.setString(1, me);
-            ResultSet helpRs = helpStmt.executeQuery();
-            helpRs.next();
-            int from = helpRs.getInt("id");
-            PreparedStatement pstmt = connection.prepareStatement(findUser);
-            pstmt.setString(1,login);
-            ResultSet rs = pstmt.executeQuery();
+        try{           
+            PreparedStatement stmt = connection.prepareStatement(checkFriends);
+            stmt.setString(1, me);
+            stmt.setString(2, login);
+            ResultSet rs = stmt.executeQuery();
             rs.next();
-            to = rs.getInt("id");
-            PreparedStatement stmt = connection.prepareStatement(insertFriend);
-            stmt.setInt(1,to);
-            stmt.setInt(2,from);
+            if(rs.getInt(1)!=0 || login.equals(me)){
+                return "error";
+            }
+            stmt = connection.prepareStatement(insertFriend);
+            stmt.setString(1, login);
+            stmt.setString(2, me);
             stmt.executeUpdate();
-            stmt.setInt(1,from);
-            stmt.setInt(2,to);
-            stmt.executeUpdate();
-            
-            PreparedStatement newStmt = connection.prepareStatement(getNickById);
-            newStmt.setInt(1,to);
-            ResultSet newRs = newStmt.executeQuery();
-            newRs.next();
-            result=newRs.getString("login");
-            
+            stmt = connection.prepareStatement(insertFriend);
+            stmt.setString(1, me);
+            stmt.setString(2, login);
+            stmt.executeUpdate();    
         }
         catch (SQLException sqlEx) {
             sqlEx.printStackTrace();
         }
-        return result;
+        return login;
     }
     
     public String getUsers(String pattern){
@@ -117,20 +108,11 @@ public class DbJobs {
     public String getFriendsList(OneConnection o){
         String result = "";
         try {
-            PreparedStatement helpStmt = connection.prepareStatement(findUser);
-            helpStmt.setString(1, o.getUid());
-            ResultSet helpRs = helpStmt.executeQuery();
-            helpRs.next();
-            int id = helpRs.getInt("id");
             PreparedStatement stmt = connection.prepareStatement(friendsQuery);
-            stmt.setInt(1, id);
+            stmt.setString(1, o.getUid());
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                PreparedStatement newStmt = connection.prepareStatement(getNickById);
-                newStmt.setInt(1,rs.getInt("friendId"));
-                ResultSet newRs = newStmt.executeQuery();
-                newRs.next();
-                result+=newRs.getString("login")+" ";
+                result+=rs.getString("friendId")+" ";
             }
         }
         catch (SQLException sqlEx) {
