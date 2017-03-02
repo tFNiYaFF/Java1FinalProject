@@ -14,7 +14,7 @@ import javax.swing.JOptionPane;
 
 /**
  *
- * @author Дима
+ * @author Никита
  */
 public class DbJobs {
     Connection connection;
